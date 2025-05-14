@@ -1,0 +1,4 @@
+
+n8n.goldlake.work.gd {
+    reverse_proxy n8n:80
+}

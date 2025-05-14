@@ -1,0 +1,54 @@
+version: '3'
+services:
+  caddy:
+    image: caddy:latest
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./infrastructure/Caddyfile:/etc/caddy/Caddyfile  
+    networks:
+      - n8n-network
+
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:latest
+    restart: always
+    environment:
+      - DB_TYPE=postgres
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${N8N_DB_NAME}
+      - N8N_PORT=80
+      - N8N_HOST=${N8N_HOST}
+      - N8N_PROTOCOL=http
+    ports:
+      - "5678:80"
+    volumes:
+      - ./n8n_data:/home/node/.n8n
+    depends_on:
+      - postgres  
+    networks:
+      - n8n-network
+
+  postgres:
+    image: postgres:latest
+    restart: always
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+    networks:
+      - n8n-network
+
+networks:
+  n8n-network:
+    driver: bridge
+
+volumes:
+  n8n_data:
+  postgres_data:
