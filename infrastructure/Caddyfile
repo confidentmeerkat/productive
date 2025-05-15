@@ -2,3 +2,15 @@
 n8n.goldlake.work.gd {
     reverse_proxy n8n:80
 }
+
+goldlake.work.gd {
+    handle /api* {
+        reverse_proxy /api/* management:3000
+    }
+
+    handle {
+        root * /var/www/html
+        try_files {path} /index.html
+        file_server
+    }
+}
