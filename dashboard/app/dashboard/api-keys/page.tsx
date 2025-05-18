@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -19,29 +19,12 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Badge } from "@/components/ui/badge"
 import { Copy, MoreHorizontal, Plus } from "lucide-react"
 import { toast } from "sonner"
-
-// Sample API keys data
-const initialApiKeys = [
-  {
-    id: "1",
-    name: "Production API",
-    key: "pk_live_5f6g7h8j9k0l1m2n3o4p5q6r7s8t9u0v",
-    created: "2023-05-15",
-    lastUsed: "2025-05-12",
-    status: "active",
-  },
-  {
-    id: "2",
-    name: "Development API",
-    key: "pk_test_1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p",
-    created: "2024-01-20",
-    lastUsed: "2025-05-10",
-    status: "active",
-  },
-]
+import { ApiKeyInfo, apikeyService } from "@/services/apikeyService"
+import useSWR from "swr"
 
 export default function ApiKeysPage() {
-  const [apiKeys, setApiKeys] = useState(initialApiKeys)
+  const { data: apiKeys = [], isLoading, error, mutate } = useSWR<ApiKeyInfo[]>("/api-keys", apikeyService.getApiKeys)
+
   const [newKeyName, setNewKeyName] = useState("")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [newKey, setNewKey] = useState<string | null>(null)
@@ -49,23 +32,14 @@ export default function ApiKeysPage() {
   const handleCreateKey = () => {
     if (!newKeyName.trim()) return
 
-    // Generate a random API key (in a real app, this would be done server-side)
-    const randomKey = "pk_" + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
-
-    setNewKey(randomKey)
-
-    const newApiKey = {
-      id: (apiKeys.length + 1).toString(),
-      name: newKeyName,
-      key: randomKey,
-      created: new Date().toISOString().split("T")[0],
-      lastUsed: "Never",
-      status: "active",
-    }
-
-    setApiKeys([...apiKeys, newApiKey])
-    setNewKeyName("")
+    apikeyService.createApiKey(newKeyName).then((newKey) => {
+      mutate()
+      setNewKeyName("")
+      setNewKey(newKey.key)
+    })
   }
+
+  
 
   const handleCopyKey = (key: string) => {
     navigator.clipboard.writeText(key)
@@ -74,10 +48,12 @@ export default function ApiKeysPage() {
     })
   }
 
-  const handleRevokeKey = (id: string) => {
-    setApiKeys(apiKeys.map((key) => (key.id === id ? { ...key, status: "revoked" } : key)))
-    toast.success("API key revoked", {
-      description: "The API key has been revoked successfully",
+  const handleRevokeKey = (id: number) => {
+    apikeyService.deleteApiKey(id).then(() => {
+      mutate()
+      toast.success("API key revoked", {
+        description: "The API key has been revoked successfully",
+      })
     })
   }
 
@@ -176,23 +152,23 @@ export default function ApiKeysPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {apiKeys.map((apiKey) => (
+              {(apiKeys || []).map((apiKey) => (
                 <TableRow key={apiKey.id}>
-                  <TableCell className="font-medium">{apiKey.name}</TableCell>
+                  <TableCell className="font-medium">{apiKey.label}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <code className="rounded bg-muted px-1 py-0.5 font-mono text-sm">
-                        {apiKey.key.substring(0, 8)}...
+                        {apiKey.prefix}...
                       </code>
-                      <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => handleCopyKey(apiKey.key)}>
+                      <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => handleCopyKey(apiKey.prefix)}>
                         <Copy className="h-3 w-3" />
                       </Button>
                     </div>
                   </TableCell>
-                  <TableCell>{apiKey.created}</TableCell>
-                  <TableCell>{apiKey.lastUsed}</TableCell>
+                  <TableCell>{apiKey.createdAt.toLocaleString()}</TableCell>
+                  <TableCell>{apiKey.lastUsedAt?.toLocaleString()}</TableCell>
                   <TableCell>
-                    <Badge variant={apiKey.status === "active" ? "default" : "secondary"}>{apiKey.status}</Badge>
+                    <Badge variant={apiKey.isActive ? "default" : "secondary"}>{apiKey.isActive ? "Active" : "Inactive"}</Badge>
                   </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
@@ -203,8 +179,8 @@ export default function ApiKeysPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleCopyKey(apiKey.key)}>Copy API Key</DropdownMenuItem>
-                        {apiKey.status === "active" && (
+                        <DropdownMenuItem onClick={() => handleCopyKey(apiKey.prefix)}>Copy API Key</DropdownMenuItem>
+                        {apiKey.isActive && (
                           <DropdownMenuItem
                             className="text-destructive focus:text-destructive"
                             onClick={() => handleRevokeKey(apiKey.id)}
@@ -217,7 +193,7 @@ export default function ApiKeysPage() {
                   </TableCell>
                 </TableRow>
               ))}
-              {apiKeys.length === 0 && (
+              {apiKeys?.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={6} className="h-24 text-center">
                     No API keys found. Create your first API key to get started.

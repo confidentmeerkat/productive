@@ -5,6 +5,7 @@ import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
 import { DrizzleModule } from './db/drizzle.module';
+import { ApiKeysModule } from './api-keys/api-keys.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { DrizzleModule } from './db/drizzle.module';
     DrizzleModule,
     AuthModule,
     UsersModule,
+    ApiKeysModule,
   ],
   controllers: [AppController],
   providers: [AppService],

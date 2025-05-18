@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 
 export function DashboardHeader() {
@@ -49,7 +49,7 @@ export function DashboardHeader() {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="rounded-full">
               <Avatar>
-                <AvatarImage src="/placeholder.svg" alt="User" />
+                {/* <AvatarImage src="/placeholder.svg" alt="User" /> */}
                 <AvatarFallback>
                   <User className="h-5 w-5" />
                 </AvatarFallback>

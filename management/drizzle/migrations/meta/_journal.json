@@ -8,6 +8,13 @@
       "when": 1747313022639,
       "tag": "0000_quiet_jubilee",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1747315527358,
+      "tag": "0001_parallel_bulldozer",
+      "breakpoints": true
     }
   ]
 }

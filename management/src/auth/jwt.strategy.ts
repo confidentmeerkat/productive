@@ -27,6 +27,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
     // You can return the full user object or a simplified version
     // What you return here will be injected into request.user
-    return { userId: payload.sub, username: payload.username }; 
+    return { id: payload.sub, username: payload.username }; 
   }
 } 
