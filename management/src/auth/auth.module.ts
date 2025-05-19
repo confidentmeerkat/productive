@@ -7,22 +7,25 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UsersModule } from '../users/users.module';
 import { AuthController } from './auth.controller';
 import { LocalStrategy } from './local.strategy';
+import { ApiKeyStrategy } from './api-key.strategy';
+import { ApiKeysModule } from '../api-keys/api-keys.module';
 
 @Module({
   imports: [
-    UsersModule, // Import UsersModule to use UsersService
+    UsersModule,
+    ApiKeysModule,
     PassportModule,
     JwtModule.registerAsync({
-      imports: [ConfigModule], // Import ConfigModule to use ConfigService
+      imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'), // Use environment variable for secret
-        signOptions: { expiresIn: '60m' }, // Token expiration time
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: { expiresIn: '60m' },
       }),
       inject: [ConfigService],
     }),
-    ConfigModule, // Make sure ConfigModule is imported if not already globally available
+    ConfigModule,
   ],
-  providers: [AuthService, LocalStrategy, JwtStrategy],
+  providers: [AuthService, LocalStrategy, JwtStrategy, ApiKeyStrategy],
   controllers: [AuthController],
   exports: [AuthService],
 })

@@ -13,7 +13,6 @@ export default function DashboardLayout({
   const router = useRouter();
 
   const { isLoading, token } = useAuth();
-  console.log('token :', token);
 
   if (isLoading) {
     return <div>Loading...</div>;

@@ -45,9 +45,8 @@ export class ApiKeysService {
   }
 
   private async hashApiKey(key: string): Promise<string> {
-    // const saltRounds = 10;
-    // return bcrypt.hash(key, saltRounds);
-    return key;
+    const saltRounds = 10;
+    return bcrypt.hash(key, saltRounds);
   }
 
   async create(userId: number, createApiKeyDto: CreateApiKeyDto): Promise<NewApiKeyDetails> {

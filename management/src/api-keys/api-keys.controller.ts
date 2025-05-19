@@ -1,29 +1,62 @@
-import { Controller, Post, Body, UseGuards, Request, Get, Delete, Param } from '@nestjs/common';
-import { ApiKeysService } from './api-keys.service';
+import { Controller, Post, Body, UseGuards, Request, Get, Delete, Param, Patch, ParseIntPipe, HttpCode, HttpStatus } from '@nestjs/common';
+import { ApiKeysService, ApiKeyInfo, NewApiKeyDetails } from './api-keys.service';
 import { CreateApiKeyDto } from './dto/create-api-key.dto';
-import { AuthGuard } from '@nestjs/passport';
+import { UpdateApiKeyDto } from './dto/update-api-key.dto';
+import { JwtOrApiKeyAuthGuard } from '../auth/guards/auth.guard';
+
+interface AuthenticatedRequest extends Express.Request {
+  user: {
+    id: number;
+    apiKeyId?: number; // Optional, present only for API key auth
+    authType?: 'jwt' | 'api-key'; // To distinguish auth type
+  } | {
+    id: number;
+    username: string;
+  };
+}
 
 @Controller('api-keys')
+@UseGuards(JwtOrApiKeyAuthGuard) // Use the new guard that supports both JWT and API key
 export class ApiKeysController {
     constructor(private readonly apiKeysService: ApiKeysService) { }
 
     @Post()
-    @UseGuards(AuthGuard('jwt'))
-    create(@Body() createApiKeyDto: CreateApiKeyDto, @Request() req) {
-        console.log(req.user);
+    @HttpCode(HttpStatus.CREATED)
+    async create(
+        @Body() createApiKeyDto: CreateApiKeyDto, 
+        @Request() req: AuthenticatedRequest
+    ): Promise<NewApiKeyDetails> {
         return this.apiKeysService.create(req.user.id, createApiKeyDto);
     }
 
     @Get()
-    @UseGuards(AuthGuard('jwt'))
-    findAll(@Request() req) {
+    async findAll(@Request() req: AuthenticatedRequest): Promise<ApiKeyInfo[]> {
         return this.apiKeysService.findAllForUser(req.user.id);
     }
 
+    @Get(':id')
+    async findOne(
+        @Param('id', ParseIntPipe) id: number, 
+        @Request() req: AuthenticatedRequest
+    ): Promise<ApiKeyInfo> {
+        return this.apiKeysService.findOneForUser(id, req.user.id);
+    }
+
+    @Patch(':id')
+    async update(
+        @Param('id', ParseIntPipe) id: number,
+        @Body() updateApiKeyDto: UpdateApiKeyDto,
+        @Request() req: AuthenticatedRequest
+    ): Promise<ApiKeyInfo> {
+        return this.apiKeysService.update(id, req.user.id, updateApiKeyDto);
+    }
 
     @Delete(':id')
-    @UseGuards(AuthGuard('jwt'))
-    remove(@Request() req, @Param('id') id: string) {
-        return this.apiKeysService.remove(req.user.id, +id);
+    @HttpCode(HttpStatus.NO_CONTENT)
+    async remove(
+        @Param('id', ParseIntPipe) id: number, 
+        @Request() req: AuthenticatedRequest
+    ): Promise<void> {
+        await this.apiKeysService.remove(id, req.user.id);
     }
 } 
