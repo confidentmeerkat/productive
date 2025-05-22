@@ -1,6 +1,6 @@
 
 n8n.goldlake.work.gd {
-    reverse_proxy n8n:80
+    reverse_proxy n8n:443
 }
 
 goldlake.work.gd {
