@@ -5,4 +5,4 @@ import { JwtOrApiKeyAuthGuard } from './auth.guard';
   providers: [JwtOrApiKeyAuthGuard],
   exports: [JwtOrApiKeyAuthGuard],
 })
-export class GuardsModule {} 
+export class GuardsModule {}

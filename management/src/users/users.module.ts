@@ -7,4 +7,4 @@ import { UsersService } from './users.service';
   providers: [UsersService],
   exports: [UsersService], // Export UsersService so it can be used by AuthModule
 })
-export class UsersModule {} 
+export class UsersModule {}

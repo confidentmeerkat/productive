@@ -12,9 +12,12 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async validateUser(username: string, pass: string): Promise<Omit<User, 'password'> | null> {
+  async validateUser(
+    username: string,
+    pass: string,
+  ): Promise<Omit<User, 'password'> | null> {
     const user = await this.usersService.findOneByUsername(username);
-    if (user && user.password && await bcrypt.compare(pass, user.password)) {
+    if (user && user.password && (await bcrypt.compare(pass, user.password))) {
       // Drizzle's select will include password, so we need to omit it here if User type includes it
       // However, our UsersService.findOneByUsername should ideally return User without password
       // For now, let's assume `user` from `findOneByUsername` is the full User from schema
@@ -26,12 +29,20 @@ export class AuthService {
 
   async login(user: Omit<User, 'password'>) {
     const payload = { username: user.username, sub: user.id }; // Use user.id from DB
+    const loginUser = await this.usersService.findOneByUsername(user.username);
     return {
+      loginUser: {
+        id: loginUser?.id,
+        username: loginUser?.username,
+        email: loginUser?.email,
+      },
       access_token: this.jwtService.sign(payload),
     };
   }
 
-  async register(createUserDto: CreateUserDto): Promise<Omit<User, 'password'>> {
+  async register(
+    createUserDto: CreateUserDto,
+  ): Promise<Omit<User, 'password'>> {
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
     // UsersService.create now expects password_hash and returns user without password
     return this.usersService.create({
@@ -39,4 +50,4 @@ export class AuthService {
       password_hash: hashedPassword,
     });
   }
-} 
+}

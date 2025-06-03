@@ -16,4 +16,4 @@ export class CreateUserDto {
   email: string; // Example: include an email field
 
   // Add other properties as needed for user creation
-} 
+}

@@ -1,4 +1,10 @@
-import { Inject, Injectable, InternalServerErrorException, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import * as schema from '../db/schema';
 import { CreateApiKeyDto } from './dto/create-api-key.dto';
 import { UpdateApiKeyDto } from './dto/update-api-key.dto';
@@ -31,15 +37,17 @@ export interface ApiKeyInfo {
 
 @Injectable()
 export class ApiKeysService {
-  constructor(
-    @Inject(DRIZZLE_ORM_TOKEN) private db: DrizzlePostgres,
-  ) {}
+  constructor(@Inject(DRIZZLE_ORM_TOKEN) private db: DrizzlePostgres) {}
 
   private readonly apiKeyPrefixLength = 7; // e.g., "pk_..."
   private readonly apiKeyByteLength = 32; // For crypto.randomBytes
 
   private generateApiKey(): { key: string; prefix: string } {
-    const key = `sk_${crypto.randomBytes(this.apiKeyByteLength).toString('hex')}`.slice(0, 64); // Keep a reasonable max length for the key itself
+    const key =
+      `sk_${crypto.randomBytes(this.apiKeyByteLength).toString('hex')}`.slice(
+        0,
+        64,
+      ); // Keep a reasonable max length for the key itself
     const prefix = key.substring(0, this.apiKeyPrefixLength);
     return { key, prefix };
   }
@@ -49,7 +57,10 @@ export class ApiKeysService {
     return bcrypt.hash(key, saltRounds);
   }
 
-  async create(userId: number, createApiKeyDto: CreateApiKeyDto): Promise<NewApiKeyDetails> {
+  async create(
+    userId: number,
+    createApiKeyDto: CreateApiKeyDto,
+  ): Promise<NewApiKeyDetails> {
     const { label } = createApiKeyDto;
     const { key, prefix } = this.generateApiKey();
     const apiKeyHash = await this.hashApiKey(key);
@@ -82,10 +93,15 @@ export class ApiKeysService {
       };
     } catch (error) {
       // TODO: Add more specific error handling, e.g., for unique constraint violation on prefix (though highly unlikely)
-      if (error.code === '23505') { // Unique violation for PostgreSQL
-        throw new InternalServerErrorException('Failed to generate a unique API key prefix. Please try again.');
+      if (error.code === '23505') {
+        // Unique violation for PostgreSQL
+        throw new InternalServerErrorException(
+          'Failed to generate a unique API key prefix. Please try again.',
+        );
       }
-      throw new InternalServerErrorException('Error creating API key: ' + error.message);
+      throw new InternalServerErrorException(
+        'Error creating API key: ' + error.message,
+      );
     }
   }
 
@@ -120,12 +136,18 @@ export class ApiKeysService {
       .where(and(eq(schema.apiKeys.id, id), eq(schema.apiKeys.userId, userId)));
 
     if (!apiKey) {
-      throw new NotFoundException('API key not found or does not belong to user.');
+      throw new NotFoundException(
+        'API key not found or does not belong to user.',
+      );
     }
     return apiKey;
   }
 
-  async update(id: number, userId: number, updateApiKeyDto: UpdateApiKeyDto): Promise<ApiKeyInfo> {
+  async update(
+    id: number,
+    userId: number,
+    updateApiKeyDto: UpdateApiKeyDto,
+  ): Promise<ApiKeyInfo> {
     // First, verify the key exists and belongs to the user
     await this.findOneForUser(id, userId); // Throws NotFoundException if not found
 
@@ -145,7 +167,7 @@ export class ApiKeysService {
         expiresAt: schema.apiKeys.expiresAt,
         isActive: schema.apiKeys.isActive,
       });
-    
+
     if (!updatedKey) {
       // This should ideally not happen if findOneForUser passed and no race condition
       throw new InternalServerErrorException('Failed to update API key.');
@@ -155,20 +177,22 @@ export class ApiKeysService {
 
   async remove(id: number, userId: number): Promise<{ message: string }> {
     const [keyToDelete] = await this.db
-        .select({ id: schema.apiKeys.id, userId: schema.apiKeys.userId })
-        .from(schema.apiKeys)
-        .where(eq(schema.apiKeys.id, id));
+      .select({ id: schema.apiKeys.id, userId: schema.apiKeys.userId })
+      .from(schema.apiKeys)
+      .where(eq(schema.apiKeys.id, id));
 
     if (!keyToDelete) {
-        throw new NotFoundException('API key not found.');
+      throw new NotFoundException('API key not found.');
     }
 
     if (keyToDelete.userId !== userId) {
-        // Although the controller logic should prevent reaching here for a different user,
-        // this service-level check adds another layer of security.
-        throw new ForbiddenException('You do not have permission to delete this API key.');
+      // Although the controller logic should prevent reaching here for a different user,
+      // this service-level check adds another layer of security.
+      throw new ForbiddenException(
+        'You do not have permission to delete this API key.',
+      );
     }
-    
+
     const result = await this.db
       .delete(schema.apiKeys)
       .where(and(eq(schema.apiKeys.id, id), eq(schema.apiKeys.userId, userId)));
@@ -177,8 +201,9 @@ export class ApiKeysService {
     // We check if anything was deleted. If the where clause didn't match, it might not error but also not delete.
     // However, findOneForUser (or the select above) should have caught it if it doesn't exist or belong to the user.
     // For now, we assume if no error, it was successful. A more robust check might be needed based on Drizzle PG driver behavior.
-    if (result.rowCount === 0) { // For pg, rowCount indicates affected rows
-        throw new NotFoundException('API key not found or could not be deleted.');
+    if (result.rowCount === 0) {
+      // For pg, rowCount indicates affected rows
+      throw new NotFoundException('API key not found or could not be deleted.');
     }
 
     return { message: 'API key deleted successfully.' };
@@ -186,9 +211,12 @@ export class ApiKeysService {
 
   // --- Methods for API Key Authentication (can be used by a separate ApiKeyStrategy) ---
 
-  async validateApiKey(key: string): Promise<{ userId: number; apiKeyId: number } | null> {
-    if (!key.startsWith('sk_')) { // Basic check for our key format
-        return null;
+  async validateApiKey(
+    key: string,
+  ): Promise<{ userId: number; apiKeyId: number } | null> {
+    if (!key.startsWith('sk_')) {
+      // Basic check for our key format
+      return null;
     }
     const prefix = key.substring(0, this.apiKeyPrefixLength);
 
@@ -205,7 +233,11 @@ export class ApiKeysService {
 
     for (const potentialKey of potentialKeys) {
       if (!potentialKey.isActive) continue;
-      if (potentialKey.expiresAt && new Date(potentialKey.expiresAt) < new Date()) continue;
+      if (
+        potentialKey.expiresAt &&
+        new Date(potentialKey.expiresAt) < new Date()
+      )
+        continue;
 
       const isMatch = await bcrypt.compare(key, potentialKey.apiKeyHash);
       if (isMatch) {
@@ -216,4 +248,4 @@ export class ApiKeysService {
     }
     return null;
   }
-} 
+}

@@ -5,4 +5,4 @@ export class CreateApiKeyDto {
   @IsNotEmpty()
   @MaxLength(100)
   label: string;
-} 
+}

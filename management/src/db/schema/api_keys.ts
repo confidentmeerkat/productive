@@ -1,9 +1,19 @@
-import { pgTable, serial, text, varchar, timestamp, boolean, integer } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  serial,
+  text,
+  varchar,
+  timestamp,
+  boolean,
+  integer,
+} from 'drizzle-orm/pg-core';
 import { users } from './users'; // Assuming users schema is in the same directory
 
 export const apiKeys = pgTable('api_keys', {
   id: serial('id').primaryKey(),
-  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }), // Foreign key to users table
+  userId: integer('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }), // Foreign key to users table
   label: varchar('label', { length: 255 }).notNull(),
   apiKeyHash: text('api_key_hash').notNull().unique(), // Store hash of the API key
   apiKeyPrefix: varchar('api_key_prefix', { length: 8 }).notNull().unique(), // Store a short, unique, non-sensitive prefix for identification
@@ -20,4 +30,4 @@ export const apiKeys = pgTable('api_keys', {
 //     fields: [apiKeys.userId],
 //     references: [users.id],
 //   }),
-// })); 
+// }));

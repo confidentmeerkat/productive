@@ -9,4 +9,4 @@ export class UpdateApiKeyDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
-} 
+}

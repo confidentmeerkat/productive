@@ -8,12 +8,7 @@ import { JwtStrategy } from '../auth/jwt.strategy';
 import { UsersModule } from '../users/users.module';
 
 @Module({
-  imports: [
-    DrizzleModule,
-    GuardsModule,
-    UsersModule,
-    PassportModule,
-  ],
+  imports: [DrizzleModule, GuardsModule, UsersModule, PassportModule],
   controllers: [ApiKeysController],
   providers: [ApiKeysService, JwtStrategy],
   exports: [ApiKeysService],

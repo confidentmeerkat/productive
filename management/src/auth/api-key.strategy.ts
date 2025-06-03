@@ -4,6 +4,19 @@ import { Strategy } from 'passport-custom';
 import { Request } from 'express';
 import { ApiKeysService } from '../api-keys/api-keys.service';
 
+export interface AuthenticatedRequest extends Express.Request {
+  user:
+    | {
+        id: number;
+        apiKeyId?: number; // Optional, present only for API key auth
+        authType?: 'jwt' | 'api-key'; // To distinguish auth type
+      }
+    | {
+        id: number;
+        username: string;
+      };
+}
+
 @Injectable()
 export class ApiKeyStrategy extends PassportStrategy(Strategy, 'api-key') {
   constructor(private apiKeysService: ApiKeysService) {
@@ -32,7 +45,7 @@ export class ApiKeyStrategy extends PassportStrategy(Strategy, 'api-key') {
     return {
       id: validationResult.userId,
       apiKeyId: validationResult.apiKeyId,
-      authType: 'api-key' // This helps distinguish between JWT and API key auth
+      authType: 'api-key', // This helps distinguish between JWT and API key auth
     };
   }
-} 
+}

@@ -4,7 +4,9 @@ import { Observable } from 'rxjs';
 
 @Injectable()
 export class JwtOrApiKeyAuthGuard extends AuthGuard(['jwt', 'api-key']) {
-  canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
+  canActivate(
+    context: ExecutionContext,
+  ): boolean | Promise<boolean> | Observable<boolean> {
     return super.canActivate(context);
   }
 
@@ -16,4 +18,4 @@ export class JwtOrApiKeyAuthGuard extends AuthGuard(['jwt', 'api-key']) {
 
     return user;
   }
-} 
+}

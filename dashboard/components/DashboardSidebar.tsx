@@ -4,7 +4,7 @@ import type React from "react"
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { BarChart3, Code2, History, Home, Key, LayoutDashboard, LifeBuoy, LogOut, Settings, Users } from "lucide-react"
+import { BarChart3, Code2, Home, Key, LayoutDashboard, LifeBuoy, LogOut, Settings, Users } from "lucide-react"
 
 import {
   Sidebar,
@@ -64,10 +64,10 @@ export function DashboardSidebar({ children }: { children: React.ReactNode }) {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathname === "/dashboard/history"}>
-                    <Link href="/dashboard/history">
-                      <History className="h-4 w-4" />
-                      <span>Request History</span>
+                  <SidebarMenuButton asChild isActive={pathname === "/dashboard/accounts"}>
+                    <Link href="/dashboard/accounts">
+                      <Users className="h-4 w-4" />
+                      <span>Accounts</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

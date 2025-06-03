@@ -1,6 +1,6 @@
 import { Module, Global } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { drizzle } from "drizzle-orm/node-postgres";
+import { drizzle } from 'drizzle-orm/node-postgres';
 import { Client } from 'pg';
 import * as schema from './schema'; // Import all schemas
 import { DRIZZLE_ORM_TOKEN } from './constants';
@@ -26,4 +26,4 @@ import { DRIZZLE_ORM_TOKEN } from './constants';
   ],
   exports: [DRIZZLE_ORM_TOKEN],
 })
-export class DrizzleModule {} 
+export class DrizzleModule {}

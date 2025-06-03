@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -23,7 +23,7 @@ import { ApiKeyInfo, apikeyService } from "@/services/apikeyService"
 import useSWR from "swr"
 
 export default function ApiKeysPage() {
-  const { data: apiKeys = [], isLoading, error, mutate } = useSWR<ApiKeyInfo[]>("/api-keys", apikeyService.getApiKeys)
+  const { data: apiKeys = [], mutate } = useSWR<ApiKeyInfo[]>("/api-keys", apikeyService.getApiKeys)
 
   const [newKeyName, setNewKeyName] = useState("")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -38,8 +38,6 @@ export default function ApiKeysPage() {
       setNewKey(newKey.key)
     })
   }
-
-  
 
   const handleCopyKey = (key: string) => {
     navigator.clipboard.writeText(key)

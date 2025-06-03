@@ -23,10 +23,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     const user = await this.usersService.findOneById(payload.sub); // Assuming 'sub' is the userId
     if (!user) {
       // Or handle as per your application's logic if user not found
-      return null; 
+      return null;
     }
     // You can return the full user object or a simplified version
     // What you return here will be injected into request.user
-    return { id: payload.sub, username: payload.username }; 
+    return { id: payload.sub, username: payload.username };
   }
-} 
+}
